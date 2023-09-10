@@ -1,4 +1,4 @@
-namespace Cadeteria;
+namespace EspCadeteria;
 
 public enum Estados
 {

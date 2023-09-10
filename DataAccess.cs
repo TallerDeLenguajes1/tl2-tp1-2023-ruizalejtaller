@@ -1,53 +1,55 @@
-namespace Cadeteria;
+namespace EspCadeteria;
 using System.IO;
+using System.Text.Json;
 
-public static class DataAccess
+public abstract class DataAccess
 {
-    public static Cadeteria GetCadeteria(string file)
+    public abstract Cadeteria GetCadeteria(string file);
+    public abstract List<Cadete> GetCadetes(string file);
+}
+
+public class DataCSV : DataAccess
+{
+    public override Cadeteria GetCadeteria(string file)
     {
-        string linea;
-        var cadeteria = new Cadeteria();
+        string linea, nombre="", telefono="";
 
         try
         {
-            using(StreamReader archivo = new StreamReader(file))
-            {
+            using StreamReader archivo = new(file);
 
-                archivo.ReadLine();
-                linea = archivo.ReadLine();
+            archivo.ReadLine();
+            linea = archivo.ReadLine();
 
-                string[] fila = linea.Split(';');
-                string nombre = fila[0];
-                string telefono = fila[1];
+            string[] fila = linea.Split(';');
+            nombre = fila[0];
+            telefono = fila[1];
 
-                cadeteria.Nombre = nombre;
-                cadeteria.Telefono = telefono;
-
-                archivo.Close();
-
-            }
+            archivo.Close();
         }
         catch (Exception e)
         {
             Console.WriteLine(e.Message);
         }
 
+
+        var cadeteria = new Cadeteria(nombre, telefono);
+
         return cadeteria;
     }
 
-    public static List<Cadete> GetCadetes(string file)
+    public override List<Cadete> GetCadetes(string file)
     {
         string linea;
         var ListaCadetes = new List<Cadete>();
 
         try
         {
-            using(StreamReader archivo = new StreamReader(file))
-            {
+            using StreamReader archivo = new(file);
 
-                archivo.ReadLine();
+            archivo.ReadLine();
 
-                while ((linea = archivo.ReadLine()) != null)
+            while ((linea = archivo.ReadLine()) != null)
             {
                 string[] fila = linea.Split(';');
                 int id = Convert.ToInt32(fila[0]);
@@ -60,9 +62,7 @@ public static class DataAccess
                 ListaCadetes.Add(cadete);
 
             }
-                archivo.Close();
-
-            }
+            archivo.Close();
         }
         catch (Exception e)
         {
@@ -70,5 +70,50 @@ public static class DataAccess
         }
 
         return ListaCadetes;
+    }
+}
+
+public class DataJson : DataAccess
+{
+    public override Cadeteria GetCadeteria(string file)
+    {
+        Cadeteria cadeteria = null;
+
+        try
+        {
+            using StreamReader archivo = new(file);
+
+            string objson = archivo.ReadToEnd();
+            cadeteria = JsonSerializer.Deserialize<Cadeteria>(objson);
+            
+            archivo.Close();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+
+        return cadeteria;
+    }
+
+    public override List<Cadete> GetCadetes(string file)
+    {
+        var LCadetes = new List<Cadete>();
+        try
+        {
+            using StreamReader archivo = new(file);
+
+            string objson = archivo.ReadToEnd();
+            LCadetes = JsonSerializer.Deserialize<List<Cadete>>(objson);
+
+            archivo.Close();
+
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+
+        return LCadetes;
     }
 }

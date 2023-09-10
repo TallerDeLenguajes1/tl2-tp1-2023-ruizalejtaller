@@ -1,16 +1,17 @@
-﻿using Cadeteria;
+﻿using System.Data;
+using EspCadeteria;
+
 internal class Program
 {
     private static void Main(string[] args)
     {
         bool flag = true;
         string str;
-        int op;
-
-        var Cadeteria = DataAccess.GetCadeteria("Cadeteria.cvs");
-        Cadeteria.LCadetes = DataAccess.GetCadetes("Cadetes.csv");
 
 
+        var Cadeteria = AccesoADatos.ElegirSource();
+
+    
         while (flag)
         {
             Console.Clear();
@@ -25,7 +26,7 @@ internal class Program
 
             str = Console.ReadLine();
 
-            if(int.TryParse(str, out op))
+            if(int.TryParse(str, out int op))
             {
                 switch(op)
                 {
