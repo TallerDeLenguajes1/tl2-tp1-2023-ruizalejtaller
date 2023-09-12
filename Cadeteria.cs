@@ -1,4 +1,7 @@
 namespace EspCadeteria;
+using System.IO;
+using System.Text.Json;
+
 
 public class Cadeteria
 {
@@ -21,66 +24,36 @@ public class Cadeteria
     public List<Pedido> LPedidos { get => lpedidos; }
     public int CantPedidos { get => cantPedidos; set => cantPedidos = value; }
 
-    public void DarAlta()
+
+    public void AltaPedido(string nombre, string direccion, string telefono, string referencia, int NroPed, string obs)
     {
-        string obs="", nombre="", direccion="", telefono="", referencia="";
-        CantPedidos++;
-        int IdCad = 0;
-
-        Console.WriteLine("\nPedido num: " + CantPedidos);
-
-        while(obs == "")
-        {
-            Console.WriteLine("Obs: ");
-            obs = Console.ReadLine();
-        }
-
-        Console.WriteLine("\n--- Datos del cliente (* campos obligatorios) ---");
-        while(nombre == "")
-        {
-            Console.WriteLine("* Nombre: ");
-            nombre = Console.ReadLine();
-        }
-
-        while(direccion =="")
-        {
-            Console.WriteLine("* Dirección: ");
-            direccion = Console.ReadLine();
-        }
-
-
-        Console.WriteLine("Telefono: ");
-        telefono = Console.ReadLine();
-
-        Console.WriteLine("Datos de referencia: ");
-        referencia = Console.ReadLine();
-
 
         var Cliente = new Cliente(nombre, direccion, telefono, referencia);
-        var Pedido = new Pedido(CantPedidos, obs, Cliente, Estados.Pendiente);
-
+        var Pedido = new Pedido(NroPed, obs, Cliente, Estados.Pendiente);
+    
         LPedidos.Add(Pedido);
-
-        while(IdCad == 0)
-        {
-            IdCad = ElegirCadete();
-        }
-
-        int IndexPed = BuscarPedido(Pedido.Nro);
-
-        AsignarCadeteAPedido(IdCad, IndexPed);
-
-
+        
     }
 
-    public void AsignarCadeteAPedido(int IdCad, int NroPed)
+    public bool AsignarCadeteAPedido(int NroPed, int IdCad)
     {
-            LPedidos[NroPed].Cadete = BuscarCadete(IdCad);
+        int Ix = BuscarPedido(NroPed);
+
+        if(Ix != -1)
+        {
+            LPedidos[Ix].Cadete = BuscarCadete(IdCad);
+            return true;
+        } else
+        {
+            return false;
+        }
+
     }
 
     public int BuscarPedido(int NroPed)
     {
-        int index = 0;
+        int index = -1;
+
         for(int i=0; i<LPedidos.Count(); i++)
         {
             if(LPedidos[i].Nro == NroPed)
@@ -97,160 +70,6 @@ public class Cadeteria
         return LCadetes.Find(cad => cad.Id == idCad);
     }
 
-    public int ElegirCadete()
-    {
-        string str;
-
-        Console.WriteLine ("\nAsignar al cadete: ");
-
-        foreach(var cad in LCadetes)
-        {
-            Console.WriteLine(cad.Id + " " + cad.Nombre);
-        }
-
-        str = Console.ReadLine();
-
-        if(int.TryParse(str, out int id))
-        {
-            if(id > 0 && id <= LCadetes.Count())
-            {
-                return id;
-            } else return 0;
-        } else return 0;
-    }
-
-
-    public void CambiarEstado()
-    {
-        string str;
-        int numP = MostrarPendientes("cambiar su estado: ");
-
-        Console.WriteLine("\n1. Entregado");
-        Console.WriteLine("2. Cancelado");
-        Console.WriteLine("3. Sigue pendiente");
-
-        str = Console.ReadLine();
-        if (int.TryParse(str, out int op))
-        {
-            switch(op)
-            {
-                case 1:
-                    CambiarEst(numP, Estados.Entregado);
-                    break;
-                
-                case 2:
-                    CambiarEst(numP, Estados.Cancelado);
-                    break;
-            }
-        }
-
-    }
-
-    public int MostrarPendientes(string text)
-    {
-        string str;
-        
-        Console.WriteLine("--- Pedidos pendientes ---");
-        MostrarPedidos(Estados.Pendiente);
-
-        Console.WriteLine("\nElija un Pedido para " + text);
-        str = Console.ReadLine();
-
-        if (int.TryParse(str, out int numP))
-        {
-            if(numP <= CantPedidos)
-            {
-                MostrarPedido(numP);
-            }
-        }
-
-        return numP;
-    }
-
-
-    public void MostrarPedidos(Estados estado)
-    {
-
-            foreach(var ped in LPedidos)
-            {
-                if(ped.Estado == estado)
-                {
-                    Console.WriteLine(ped.Nro + ". " + ped.Obs + " - Cliente: " + ped.Cliente.Nombre + " / Dirección: " + ped.Cliente.Direccion + " -- Cadete: " + ped.Cadete.Nombre);
-                }
-            }
-
-    }
-
-    public void MostrarTLPedidos()
-    {
-        Console.WriteLine("--- Pedidos pendientes ---");
-        MostrarPedidos(Estados.Pendiente);
-
-        Console.WriteLine("\n--- Pedidos entregados ---");
-        MostrarPedidos(Estados.Entregado);
-
-        Console.WriteLine("\n--- Pedidos cancelados ---");
-        MostrarPedidos(Estados.Cancelado);
-
-        Console.WriteLine("\nPulse una tecla para continuar");
-        Console.ReadKey();
-    }
-
-    public void ReasignarCadete()
-    {
-        int numP = MostrarPendientes("reasignar cadete: ");
-        int IdCad = 0;
-
-        while(IdCad == 0)
-        {
-            IdCad = ElegirCadete();
-        }
-
-        int IndexPed = BuscarPedido(numP);
-
-        if(LPedidos[IndexPed].Estado == Estados.Pendiente)
-        {
-            AsignarCadeteAPedido(IdCad, IndexPed);
-        }
-
-    }
-
-
-    public void Informe()
-    {
-        int cantTotal = 0;
-        float montoTotal = 0;
-        Console.Clear();
-        foreach(var cad in LCadetes)
-        {
-            Console.WriteLine($"Cadete: {cad.Nombre} -- Cant envíos: {PedidosEntregados(cad)} -- Monto ganado: {JornalACobrar(cad)}");
-            cantTotal += PedidosEntregados(cad);
-            montoTotal +=JornalACobrar(cad);
-        }
-
-        Console.WriteLine ("\nTotal de envíos: " + cantTotal);
-        Console.WriteLine("Monto total: " + montoTotal);
-        Console.WriteLine("Envíos promedio por cadete: " + cantTotal/LCadetes.Count());
-    }
-
-    // Refactorizacion de Pedidos
-
-
-    public void MostrarPedido(int num)
-    {
-        foreach(var ped in LPedidos)
-        {
-            if(ped.Nro == num)
-            {
-                Console.Clear();
-                Console.WriteLine("Obs: " + ped.Obs);
-                Console.WriteLine("Estado: " + ped.Estado);
-                ped.VerDatosCliente();
-                Console.WriteLine("Cadete: " + ped.Cadete.Nombre);
-            }
-        }
-    }
-
     public void CambiarEst(int num, Estados estado)
     {
         foreach(var ped in LPedidos)
@@ -261,8 +80,20 @@ public class Cadeteria
             }
         }
     }
+   
+   public bool ReasignarPedidoACadete(int NroPed, int IdCad)
+   {
+        int IndexPed = BuscarPedido(NroPed);
 
-
+        if(IndexPed != -1)
+        {
+            if(LPedidos[IndexPed].Estado == Estados.Pendiente)
+            {
+                AsignarCadeteAPedido(NroPed, IdCad);
+                return true;
+            } else return false;
+        } else return false;
+   }
 
     public float JornalACobrar(Cadete cad)
     {
@@ -281,8 +112,6 @@ public class Cadeteria
         }
         return cant;
     }
-
-
 }
 
 public class Cadete
@@ -307,4 +136,138 @@ public class Cadete
     public string Telefono { get => telefono; }
 
     
+}
+
+public class Pedido
+{
+    private int nro;
+    private string obs;
+    private Cliente cliente;
+    private Cadete cadete;
+    private Estados estado;
+
+    public Pedido(int nro, string obs, Cliente cliente, Estados estado)
+    {
+        this.nro = nro;
+        this.obs = obs;
+        this.cliente = cliente;
+        this.estado = estado;
+    }
+
+    public int Nro { get => nro; set => nro = value; }
+    public string Obs { get => obs; set => obs = value; }
+    public Cliente Cliente { get => cliente; set => cliente = value; }
+    public Estados Estado { get => estado; set => estado = value; }
+    public Cadete Cadete { get => cadete; set => cadete = value; }
+
+
+}
+
+public class Cliente
+{
+    private string nombre;
+    private string direccion;
+    private string telefono;
+    private string datosreferenciadireccion;
+
+    public Cliente(string nombre, string direccion, string telefono, string datosreferenciadireccion)
+    {
+        this.nombre = nombre;
+        this.direccion = direccion;
+        this.telefono = telefono;
+        this.datosreferenciadireccion = datosreferenciadireccion;
+    }
+
+    public string Nombre { get => nombre; set => nombre = value; }
+    public string Direccion { get => direccion; set => direccion = value; }
+    public string Telefono { get => telefono; set => telefono = value; }
+    public string DatosReferenciaDireccion { get => datosreferenciadireccion; set => datosreferenciadireccion = value; }
+}
+
+public abstract class DataAccess
+{
+    public abstract Cadeteria GetCadeteria(string file);
+    public abstract List<Cadete> GetCadetes(string file);
+}
+
+public class DataCSV : DataAccess
+{
+    public override Cadeteria GetCadeteria(string file)
+    {
+        string linea, nombre="", telefono="";
+
+            using StreamReader archivo = new(file);
+
+            archivo.ReadLine();
+            linea = archivo.ReadLine();
+
+            string[] fila = linea.Split(';');
+            nombre = fila[0];
+            telefono = fila[1];
+
+            archivo.Close();
+
+
+        var cadeteria = new Cadeteria(nombre, telefono);
+
+        return cadeteria;
+    }
+
+    public override List<Cadete> GetCadetes(string file)
+    {
+        string linea;
+        var ListaCadetes = new List<Cadete>();
+
+            using StreamReader archivo = new(file);
+
+            archivo.ReadLine();
+
+            while ((linea = archivo.ReadLine()) != null)
+            {
+                string[] fila = linea.Split(';');
+                int id = Convert.ToInt32(fila[0]);
+                string nombre = fila[1];
+                string direccion = fila[2];
+                string telefono = fila[3];
+
+                var cadete = new Cadete(id, nombre, direccion, telefono);
+
+                ListaCadetes.Add(cadete);
+
+            }
+            archivo.Close();
+
+        return ListaCadetes;
+    }
+}
+
+public class DataJson : DataAccess
+{
+    public override Cadeteria GetCadeteria(string file)
+    {
+        Cadeteria cadeteria = null;
+
+            using StreamReader archivo = new(file);
+
+            string objson = archivo.ReadToEnd();
+            cadeteria = JsonSerializer.Deserialize<Cadeteria>(objson);
+            
+            archivo.Close();
+
+        return cadeteria;
+    }
+
+    public override List<Cadete> GetCadetes(string file)
+    {
+        var LCadetes = new List<Cadete>();
+
+            using StreamReader archivo = new(file);
+
+            string objson = archivo.ReadToEnd();
+            LCadetes = JsonSerializer.Deserialize<List<Cadete>>(objson);
+
+            archivo.Close();
+
+        return LCadetes;
+    }
 }
