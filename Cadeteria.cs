@@ -13,16 +13,40 @@ public class Cadeteria
 
     public Cadeteria(string nombre, string telefono)
     {
-        this.nombre = nombre;
+        this.Nombre = nombre;
         this.telefono = telefono;
         this.lpedidos = new List<Pedido>();
     }
 
-    public string Nombre { get => nombre; }
-    public string Telefono { get => telefono; }
+
+    public string Nombre { set => nombre = value; }
+    public string Telefono { set => telefono = value; }
     public List<Cadete> LCadetes { get => lcadetes; set => lcadetes = value; }
-    public List<Pedido> LPedidos { get => lpedidos; }
-    public int CantPedidos { get => cantPedidos; set => cantPedidos = value; }
+
+    public string MostrarNombreCadeteria()
+    {
+        return nombre;
+    }
+
+    public void IncNroPed()
+    {
+        cantPedidos++;
+    }
+
+    public int NroCantPedidos()
+    {
+        return cantPedidos;
+    }
+
+    public List<Cadete> ListaCadetes()
+    {
+        return LCadetes;
+    }
+
+    public List<Pedido> ListaPedidos()
+    {
+        return lpedidos;
+    }
 
 
     public void AltaPedido(string nombre, string direccion, string telefono, string referencia, int NroPed, string obs)
@@ -31,7 +55,7 @@ public class Cadeteria
         var Cliente = new Cliente(nombre, direccion, telefono, referencia);
         var Pedido = new Pedido(NroPed, obs, Cliente, Estados.Pendiente);
     
-        LPedidos.Add(Pedido);
+        lpedidos.Add(Pedido);
         
     }
 
@@ -41,7 +65,7 @@ public class Cadeteria
 
         if(Ix != -1)
         {
-            LPedidos[Ix].Cadete = BuscarCadete(IdCad);
+            lpedidos[Ix].Cadete = BuscarCadete(IdCad);
             return true;
         } else
         {
@@ -54,9 +78,9 @@ public class Cadeteria
     {
         int index = -1;
 
-        for(int i=0; i<LPedidos.Count(); i++)
+        for(int i=0; i<lpedidos.Count(); i++)
         {
-            if(LPedidos[i].Nro == NroPed)
+            if(lpedidos[i].Nro == NroPed)
             {
                 index = i;
             }
@@ -72,7 +96,7 @@ public class Cadeteria
 
     public void CambiarEst(int num, Estados estado)
     {
-        foreach(var ped in LPedidos)
+        foreach(var ped in lpedidos)
         {
             if(ped.Nro == num)
             {
@@ -87,7 +111,7 @@ public class Cadeteria
 
         if(IndexPed != -1)
         {
-            if(LPedidos[IndexPed].Estado == Estados.Pendiente)
+            if(lpedidos[IndexPed].Estado == Estados.Pendiente)
             {
                 AsignarCadeteAPedido(NroPed, IdCad);
                 return true;
@@ -103,7 +127,7 @@ public class Cadeteria
     public int PedidosEntregados(Cadete cad)
     {
         int cant = 0;
-        foreach (var ped in LPedidos)
+        foreach (var ped in lpedidos)
         {
             if (ped.Cadete == cad && ped.Estado == Estados.Entregado)
             {
@@ -188,6 +212,29 @@ public abstract class DataAccess
 {
     public abstract Cadeteria GetCadeteria(string file);
     public abstract List<Cadete> GetCadetes(string file);
+
+    public static Cadeteria CargarCSV()
+    {
+        DataAccess DataCadeteria = new DataCSV();
+        return CargarDatos(DataCadeteria, "Cadeteria.csv", "Cadetes.csv");
+    }
+    public static Cadeteria CargarJson()
+    {
+        DataAccess DataCadeteria = new DataJson();
+        return CargarDatos(DataCadeteria, "Cadeteria.json", "Cadetes.json");
+    }
+
+    public static Cadeteria CargarDatos(DataAccess DataCadeteria, string FileCadeteria, string FileCadetes)
+    {
+        Cadeteria Cadeteria = null;
+        if(File.Exists(FileCadeteria) && File.Exists(FileCadetes))
+        {
+            Cadeteria = DataCadeteria.GetCadeteria(FileCadeteria);
+            Cadeteria.LCadetes = DataCadeteria.GetCadetes(FileCadetes);
+        } 
+
+        return Cadeteria;
+    }
 }
 
 public class DataCSV : DataAccess
@@ -270,4 +317,6 @@ public class DataJson : DataAccess
 
         return LCadetes;
     }
+
+
 }

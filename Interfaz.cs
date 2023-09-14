@@ -9,7 +9,7 @@ public class Interfaz
         while (flag)
         {
             Console.Clear();
-            Console.WriteLine("Cadeteria: " + Cad.Nombre);
+            Console.WriteLine("Cadeteria: " + Cad.MostrarNombreCadeteria());
             Console.WriteLine("-----------------------------");
             Console.WriteLine("\n--- Pedidos ---");
             Console.WriteLine("1. Dar de alta");
@@ -43,10 +43,10 @@ public class Interfaz
     public static void DarAlta(Cadeteria Cad)
     {
         string obs="", nombre="", direccion="", telefono="", referencia="";
-        Cad.CantPedidos++;
+        Cad.IncNroPed();
         int IdCad = 0;
 
-        Console.WriteLine("\nPedido num: " + Cad.CantPedidos);
+        Console.WriteLine("\nPedido num: " + Cad.NroCantPedidos());
 
         while(obs == "")
         {
@@ -74,7 +74,7 @@ public class Interfaz
         Console.WriteLine("Datos de referencia: ");
         referencia = Console.ReadLine();
 
-        Cad.AltaPedido(nombre, direccion, telefono, referencia, Cad.CantPedidos, obs);
+        Cad.AltaPedido(nombre, direccion, telefono, referencia, Cad.NroCantPedidos(), obs);
     
 
         while(IdCad == 0)
@@ -82,7 +82,7 @@ public class Interfaz
             IdCad = ElegirCadete(Cad);
         }
 
-        if(Cad.AsignarCadeteAPedido(Cad.CantPedidos, IdCad))
+        if(Cad.AsignarCadeteAPedido(Cad.NroCantPedidos(), IdCad))
         {
             Console.WriteLine("\nPedido agregado con éxito");
         } else
@@ -100,7 +100,7 @@ public class Interfaz
 
         Console.WriteLine ("\nAsignar al cadete: ");
 
-        foreach(var cad in Cad.LCadetes)
+        foreach(var cad in Cad.ListaCadetes())
         {
             Console.WriteLine(cad.Id + " " + cad.Nombre);
         }
@@ -109,7 +109,7 @@ public class Interfaz
 
         if(int.TryParse(str, out int id))
         {
-            if(id > 0 && id <= Cad.LCadetes.Count())
+            if(id > 0 && id <= Cad.ListaCadetes().Count())
             {
                 return id;
             } else return 0;
@@ -134,7 +134,7 @@ public class Interfaz
         public static void MostrarPedidos(Cadeteria Cad, Estados estado)
     {
 
-            foreach(var ped in Cad.LPedidos)
+            foreach(var ped in Cad.ListaPedidos())
             {
                 if(ped.Estado == estado)
                 {
@@ -203,7 +203,7 @@ public class Interfaz
 
         if (int.TryParse(str, out int numP))
         {
-            if(numP <= Cad.CantPedidos)
+            if(numP <= Cad.NroCantPedidos())
             {
                 MostrarPedido(Cad, numP);
             }
@@ -214,7 +214,7 @@ public class Interfaz
 
     public static void MostrarPedido(Cadeteria Cad, int num)
     {
-        foreach(var ped in Cad.LPedidos)
+        foreach(var ped in Cad.ListaPedidos())
         {
             if(ped.Nro == num)
             {
@@ -240,7 +240,7 @@ public class Interfaz
         int cantTotal = 0;
         float montoTotal = 0;
         Console.Clear();
-        foreach(var cad in Cad.LCadetes)
+        foreach(var cad in Cad.ListaCadetes())
         {
             Console.WriteLine($"Cadete: {cad.Nombre} -- Cant envíos: {Cad.PedidosEntregados(cad)} -- Monto ganado: {Cad.JornalACobrar(cad)}");
             cantTotal += Cad.PedidosEntregados(cad);
@@ -249,7 +249,7 @@ public class Interfaz
 
         Console.WriteLine ("\nTotal de envíos: " + cantTotal);
         Console.WriteLine("Monto total: " + montoTotal);
-        Console.WriteLine("Envíos promedio por cadete: " + cantTotal/Cad.LCadetes.Count());
+        Console.WriteLine("Envíos promedio por cadete: " + cantTotal/Cad.ListaCadetes().Count());
     }
 
 }
@@ -276,12 +276,12 @@ public static class AccesoADatos
                 switch(op)
                 {
                     case 1:
-                        Cadeteria = CargarCSV();
+                        Cadeteria = DataAccess.CargarCSV();
                         flag = false;
                         break;
 
                     case 2:
-                        Cadeteria = CargarJson();
+                        Cadeteria = DataAccess.CargarJson();
                         flag = false;
                         break;
 
@@ -290,33 +290,6 @@ public static class AccesoADatos
                         break;
                 }
             }
-        }
-
-        return Cadeteria;
-    }
-
-    public static Cadeteria CargarCSV()
-    {
-        DataAccess DataCadeteria = new DataCSV();
-        return CargarDatos(DataCadeteria, "Cadeteria.csv", "Cadetes.csv");
-    }
-
-    public static Cadeteria CargarJson()
-    {
-        DataAccess DataCadeteria = new DataJson();
-        return CargarDatos(DataCadeteria, "Cadeteria.json", "Cadetes.json");
-    }
-
-    public static Cadeteria CargarDatos(DataAccess DataCadeteria, string FileCadeteria, string FileCadetes)
-    {
-        Cadeteria Cadeteria = null;
-        if(File.Exists(FileCadeteria) && File.Exists(FileCadetes))
-        {
-            Cadeteria = DataCadeteria.GetCadeteria(FileCadeteria);
-            Cadeteria.LCadetes = DataCadeteria.GetCadetes(FileCadetes);
-        } else
-        {
-            Console.WriteLine("Archivo no encontrado");
         }
 
         return Cadeteria;
