@@ -2,7 +2,6 @@ namespace EspCadeteria;
 using System.IO;
 using System.Text.Json;
 
-
 public class Cadeteria
 {
     private string nombre;

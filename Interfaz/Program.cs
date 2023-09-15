@@ -1,6 +1,5 @@
 ﻿using System.Data;
 using EspCadeteria;
-
 internal class Program
 {
     private static void Main(string[] args)
